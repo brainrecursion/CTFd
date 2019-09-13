@@ -20,8 +20,10 @@
 				</div>
 			{% endfor %}
 
+			{% if oauth_client_secret != None and oauth_client_secret != '' %}
 			<a class="btn btn-secondary btn-lg btn-block" href="{{ url_for('auth.oauth_login') }}">Login with Major
 				League Cyber</a>
+				{% endif%}
 
 			<hr>
 
@@ -59,4 +61,3 @@
 
 {% block scripts %}
 {% endblock %}
-

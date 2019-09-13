@@ -158,6 +158,7 @@ def reset_password(data=None):
 @ratelimit(method="POST", limit=10, interval=5)
 def register():
     errors = get_errors()
+    client_id = get_app_config("OAUTH_CLIENT_ID") or get_config("oauth_client_id")
     if request.method == "POST":
         name = request.form["name"]
         email_address = request.form["email"]
@@ -203,6 +204,7 @@ def register():
                 name=request.form["name"],
                 email=request.form["email"],
                 password=request.form["password"],
+                oauth_client_id=client_id,
             )
         else:
             with app.app_context():
@@ -246,13 +248,14 @@ def register():
 
         return redirect(url_for("challenges.listing"))
     else:
-        return render_template("register.html", errors=errors)
+        return render_template("register.html", errors=errors, oauth_client_id=client_id)
 
 
 @auth.route("/login", methods=["POST", "GET"])
 @ratelimit(method="POST", limit=10, interval=5)
 def login():
     errors = get_errors()
+    client_id = get_app_config("OAUTH_CLIENT_ID") or get_config("oauth_client_id")
     if request.method == "POST":
         name = request.form["name"]
 
@@ -281,16 +284,16 @@ def login():
                 log("logins", "[{date}] {ip} - submitted invalid password for {name}")
                 errors.append("Your username or password is incorrect")
                 db.session.close()
-                return render_template("login.html", errors=errors)
+                return render_template("login.html", errors=errors, oauth_client_id=client_id)
         else:
             # This user just doesn't exist
             log("logins", "[{date}] {ip} - submitted invalid account information")
             errors.append("Your username or password is incorrect")
             db.session.close()
-            return render_template("login.html", errors=errors)
+            return render_template("login.html", errors=errors, oauth_client_id=client_id)
     else:
         db.session.close()
-        return render_template("login.html", errors=errors)
+        return render_template("login.html", errors=errors, oauth_client_id=client_id)
 
 
 @auth.route("/oauth")
