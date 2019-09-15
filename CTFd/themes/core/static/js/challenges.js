@@ -275,7 +275,7 @@ function loadchals(cb) {
 
     $("#challenges-board").empty();
 
-    for (var i = challenges.length - 1; i >= 0; i--) {
+    for (var i = 0; i <= challenges.length - 1; i++) {
       challenges[i].solves = 0;
       if ($.inArray(challenges[i].category, categories) == -1) {
         var category = challenges[i].category;
