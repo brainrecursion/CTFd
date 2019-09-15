@@ -1,7 +1,7 @@
 from flask import request
 from flask_restplus import Namespace, Resource
 from CTFd.cache import clear_standings
-from CTFd.models import db, get_class_by_tablename, Unlocks
+from CTFd.models import db, get_class_by_tablename, Unlocks, Hints
 from CTFd.utils.user import get_current_user
 from CTFd.schemas.unlocks import UnlockSchema
 from CTFd.schemas.awards import AwardSchema
@@ -41,6 +41,41 @@ class UnlockList(Resource):
         Model = get_class_by_tablename(req["type"])
         target = Model.query.filter_by(id=req["target"]).first_or_404()
 
+        prereq_unlocks = (
+            Hints.query
+            .filter_by(challenge_id = target.challenge_id)
+            .filter(Hints.cost < target.cost)
+            .all()
+        )
+        unlock_ids = (
+            Unlocks.query
+            .filter_by(account_id=user.account_id)
+            .all()
+        )
+        unlock_ids = set([unlock.target for unlock in unlock_ids])
+        prereqs = set([hint.id for hint in prereq_unlocks])
+        if (unlock_ids >= prereqs):
+            pass
+        else:
+            return (
+                {
+                    "success": False,
+                    "errors": {
+                        "score": "Hints have to be unlocked in cost order"
+                    },
+                },
+                400,
+            )
+        if target.id in unlock_ids:
+            return (
+                {
+                    "success": False,
+                    "errors": {
+                        "score": "You have already unlocked this hint"
+                    },
+                },
+                400,
+            )
         if target.cost > user.score:
             return (
                 {
